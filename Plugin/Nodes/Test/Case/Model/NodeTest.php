@@ -1,6 +1,7 @@
 <?php
 App::uses('Node', 'Nodes.Model');
 App::uses('CroogoTestCase', 'TestSuite');
+CakePlugin::load('Translate');
 
 class NodeTest extends CroogoTestCase {
 
@@ -56,12 +57,12 @@ class NodeTest extends CroogoTestCase {
 		// assert existing count
 		$commentCount = $this->Node->Comment->find('count',
 			array('conditions' => array('Comment.node_id' => 1))
-			);
+		);
 		$this->assertEquals(2, $commentCount);
 
 		$metaCount = $this->Node->Meta->find('count',
 			array('conditions' => array('model' => 'Node', 'foreign_key' => 1))
-			);
+		);
 		$this->assertEquals(1, $metaCount);
 
 		// delete node
@@ -70,13 +71,38 @@ class NodeTest extends CroogoTestCase {
 
 		$commentCount = $this->Node->Comment->find('count',
 			array('conditions' => array('Comment.node_id' => 1))
-			);
+		);
 		$this->assertEqual(0, $commentCount);
 
 		$metaCount = $this->Node->Meta->find('count',
 			array('conditions' => array('model' => 'Node', 'foreign_key' => 1))
-			);
+		);
 		$this->assertEqual(0, $metaCount);
+	}
+
+/**
+ * testAdd
+ *
+ * @return void
+ */
+	public function testAdd() {
+		$data = array(
+			'Node' => array(
+				'title' => 'New Blog',
+				'slug' => 'new-blog',
+				'type' => 'blog',
+				'token_key' => 1,
+				'body' => '',
+			),
+			'Role' => array(
+				'Role' => array(),
+			),
+		);
+		$result = $this->Node->add($data);
+		$this->assertTrue($result);
+		$result = $this->Node->findBySlug('new-blog');
+		$this->assertEquals('New Blog', $result['Node']['title']);
+		$this->assertEquals('/nodes/view/slug:new-blog', $result['Node']['path']);
 	}
 
 }

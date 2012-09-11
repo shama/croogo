@@ -1,6 +1,7 @@
 <?php
 
 App::uses('NodesAppModel', 'Nodes.Model');
+App::uses('Croogo', 'Lib');
 
 /**
  * Node
@@ -43,6 +44,13 @@ class Node extends NodesAppModel {
 			),
 		),
 	);
+
+/**
+ * order
+ *
+ * @var array
+ */
+	public $order = array('Node.created' => 'DESC');
 
 /**
  * Node type
@@ -277,5 +285,32 @@ class Node extends NodesAppModel {
 			$fields[$this->alias . '.type'] = $this->type;
 		}
 		return ($this->find('count', array('conditions' => $fields, 'recursive' => -1)) == 0);
+	}
+
+/**
+ * Add a node
+ *
+ * @param array $data
+ * @return boolean
+ */
+	public function add($data = array()) {
+		if (isset($data['TaxonomyData'])) {
+			$data['Taxonomy'] = array('Taxonomy' => array());
+			foreach ($data['TaxonomyData'] as $vocabularyId => $taxonomyIds) {
+				if (is_array($taxonomyIds)) {
+					$data['Taxonomy']['Taxonomy'] = array_merge($data['Taxonomy']['Taxonomy'], $taxonomyIds);
+				}
+			}
+		}
+		$this->create();
+		$data['Node']['path'] = Croogo::getRelativePath(array(
+			'admin' => false,
+			'controller' => 'nodes',
+			'action' => 'view',
+			'type' => $this->type,
+			'slug' => $data['Node']['slug'],
+		));
+		$data['Node']['visibility_roles'] = $this->encodeData($data['Role']['Role']);
+		return $this->saveWithMeta($data);
 	}
 }
